@@ -8,7 +8,7 @@ button.addEventListener("click", async () => {
   output.textContent = "";
 
   try {
-    const response = await fetch("/api/run", { method: "POST" });
+    const response = await fetch("/api/run", {method: "POST"});
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "The program could not run.");
     output.textContent = data.output || "(The program did not print any output.)";
