@@ -1,2 +1,10 @@
+[project]
+name = "cardiotree-classifier"
+version = "1.0.0"
+requires-python = ">=3.12"
+dependencies = [
+    "pandas",
+    "scikit-learn",
+]
 [tool.vercel]
 entrypoint = "api.run:handler"
