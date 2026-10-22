@@ -1,4 +1,4 @@
-# Cardiotree Classifier — simple web runner
+# Cardiotree Classifier 
 
 A machine learning project I made for Girls Who Code and turned into a website for Snowglobe Hack Club!
 The project uses Python and a decision tree classifier to explore patterns in heart disease data.
