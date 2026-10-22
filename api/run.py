@@ -1,51 +1,57 @@
 
-from contextlib import redirect_stdout, redirect_stderr
 from http.server import BaseHTTPRequestHandler
+from contextlib import redirect_stdout, redirect_stderr
 from io import StringIO
 import os
 import runpy
+import json
 import traceback
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+
 class handler(BaseHTTPRequestHandler):
+
     def do_GET(self):
-    self.send_response(200)
-    self.send_header("Content-Type", "text/plain; charset=utf-8")
-    self.end_headers()
-    self.wfile.write(
-        b"Cardiotree API is running. Use the website's Run Program button to execute the model."
-    )
+        self.send_response(200)
+        self.send_header("Content-Type", "text/plain; charset=utf-8")
+        self.end_headers()
+        self.wfile.write(
+            b"Cardiotree API is running. Use the website's Run Program button."
+        )
+
     def do_POST(self):
         output = StringIO()
+        old_cwd = os.getcwd()
+
         try:
-            # main.py is run without interactive input() pauses.
-            old_cwd = os.getcwd()
             os.chdir(ROOT)
-            try:
-                with redirect_stdout(output), redirect_stderr(output):
-                    runpy.run_path(os.path.join(ROOT, "main.py"), run_name="__main__")
-            finally:
-                os.chdir(old_cwd)
 
-            body = output.getvalue().encode("utf-8", errors="replace")
-            self.send_response(200)
-            self.send_header("Content-Type", "application/json; charset=utf-8")
-            self.send_header("Access-Control-Allow-Origin", "*")
-            self.end_headers()
-            import json
-            self.wfile.write(json.dumps({"output": body.decode("utf-8")}).encode("utf-8"))
+            with redirect_stdout(output), redirect_stderr(output):
+                runpy.run_path(
+                    os.path.join(ROOT, "main.py"),
+                    run_name="__main__"
+                )
+
+            result = {
+                "output": output.getvalue()
+            }
+            status = 200
+
         except Exception as exc:
-            import json
-            body = json.dumps({"error": f"{type(exc).__name__}: {exc}"}).encode("utf-8")
-            self.send_response(500)
-            self.send_header("Content-Type", "application/json; charset=utf-8")
-            self.end_headers()
-            self.wfile.write(body)
+            traceback.print_exc()
+            result = {
+                "error": f"{type(exc).__name__}: {exc}"
+            }
+            status = 500
 
-    def do_OPTIONS(self):
-        self.send_response(204)
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        finally:
+            os.chdir(old_cwd)
+
+        body = json.dumps(result).encode("utf-8")
+
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
         self.end_headers()
+        self.wfile.write(body)
