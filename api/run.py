@@ -9,6 +9,13 @@ import traceback
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 class handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+    self.send_response(200)
+    self.send_header("Content-Type", "text/plain; charset=utf-8")
+    self.end_headers()
+    self.wfile.write(
+        b"Cardiotree API is running. Use the website's Run Program button to execute the model."
+    )
     def do_POST(self):
         output = StringIO()
         try:
